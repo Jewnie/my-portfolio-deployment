@@ -1,0 +1,119 @@
+apiVersion: v1
+
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: portfolio-db-data
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  resources:
+
+    requests:
+
+      storage: 2Gi
+
+---
+
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+
+  name: portfolio-db
+
+  labels:
+
+    app: portfolio-db
+
+spec:
+
+  replicas: 1
+
+  selector:
+
+    matchLabels:
+
+      app: portfolio-db
+
+  template:
+
+    metadata:
+
+      labels:
+
+        app: portfolio-db
+
+    spec:
+
+      containers:
+
+        - name: portfolio-db
+
+          image: postgres:16
+
+          ports:
+
+            - containerPort: 5432
+
+          env:
+
+            - name: POSTGRES_DB
+
+              value: directus
+
+            - name: POSTGRES_USER
+
+              value: directus
+
+            - name: POSTGRES_PASSWORD
+
+              valueFrom:
+
+                secretKeyRef:
+
+                  name: portfolio-secrets
+
+                  key: DB_PASSWORD
+
+          volumeMounts:
+
+            - name: portfolio-db-storage
+
+              mountPath: /var/lib/postgresql/data
+
+      volumes:
+
+        - name: portfolio-db-storage
+
+          persistentVolumeClaim:
+
+            claimName: portfolio-db-data
+
+---
+
+apiVersion: v1
+
+kind: Service
+
+metadata:
+
+  name: portfolio-db-svc
+
+spec:
+
+  selector:
+
+    app: portfolio-db
+
+  ports:
+
+    - port: 5432
+
+      targetPort: 5432

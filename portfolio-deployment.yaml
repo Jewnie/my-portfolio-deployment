@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+
+  name: portfolio
+
+  labels:
+
+    app: portfolio
+
+spec:
+
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  minReadySeconds: 5
+  selector:
+
+    matchLabels:
+
+      app: portfolio
+
+  template:
+
+    metadata:
+
+      labels:
+
+        app: portfolio
+
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: portfolio
+          image: ghcr.io/jewnie/my-portfolio:latest
+          imagePullPolicy: Always
+          env:
+            - name: DIRECTUS_URL
+              value: http://portfolio-cms-svc
+            - name: DIRECTUS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: portfolio-secrets
+                  key: TOKEN
+          ports:
+
+            - containerPort: 4321 
+
+
+          resources:
+
+            requests:
+
+              cpu: "100m"
+
+              memory: "128Mi"
+
+            limits:
+
+              cpu: "500m"
+
+              memory: "256Mi"
+
+
+---
+
+apiVersion: v1
+
+kind: Service
+
+metadata:
+
+  name: portfolio-svc
+
+spec:
+
+  selector:
+
+    app: portfolio
+
+  ports:
+
+    - protocol: TCP
+
+      port: 80
+
+      targetPort: 4321
+
+  type: ClusterIP
+
+---
+
+apiVersion: traefik.io/v1alpha1
+
+kind: IngressRoute
+
+metadata:
+
+  name: portfolio-ingressroute
+
+spec:
+
+  entryPoints:
+
+    - web
+
+  routes:
+
+    - match: PathPrefix(`/`)
+
+      kind: Rule
+
+      services:
+
+        - name: portfolio-svc
+
+          port: 80

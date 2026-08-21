@@ -1,0 +1,171 @@
+apiVersion: v1
+
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: portfolio-directus-uploads
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  resources:
+
+    requests:
+
+      storage: 5Gi
+
+---
+
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+
+  name: portfolio-cms
+
+  labels:
+
+    app: portfolio-cms
+
+spec:
+
+  replicas: 1
+
+  selector:
+
+    matchLabels:
+
+      app: portfolio-cms
+
+  template:
+
+    metadata:
+
+      labels:
+
+        app: portfolio-cms
+
+    spec:
+
+      containers:
+
+        - name: portfolio-cms
+
+          image: directus/directus:12.2.0
+
+          ports:
+
+            - containerPort: 8055
+
+          env:
+
+            - name: KEY
+
+              valueFrom:
+
+                secretKeyRef: { name: portfolio-secrets, key: KEY }
+
+            - name: SECRET
+
+              valueFrom:
+
+                secretKeyRef: { name: portfolio-secrets, key: SECRET }
+
+            - name: ADMIN_EMAIL
+
+              valueFrom:
+
+                secretKeyRef: { name: portfolio-secrets, key: ADMIN_EMAIL }
+
+            - name: ADMIN_PASSWORD
+
+              valueFrom:
+
+                secretKeyRef: { name: portfolio-secrets, key: ADMIN_PASSWORD }
+
+            - name: DB_CLIENT
+
+              value: pg
+
+            - name: DB_HOST
+
+              value: portfolio-db-svc
+
+            - name: DB_PORT
+
+              value: "5432"
+
+            - name: DB_DATABASE
+
+              value: directus
+
+            - name: DB_USER
+
+              value: directus
+
+            - name: DB_PASSWORD
+
+              valueFrom:
+
+                secretKeyRef: { name: portfolio-secrets, key: DB_PASSWORD }
+
+            - name: CORS_ENABLED
+
+              value: "true"
+
+            - name: CORS_ORIGIN
+
+              value: "http://192.168.0.175:30080"   # update to match how your portfolio is actually reachable
+
+            - name: PUBLIC_URL
+
+              value: "http://192.168.0.175:30081"   # update once you know cms's exposed address
+
+            - name: WEBSOCKETS_ENABLED
+
+              value: "true"
+
+          volumeMounts:
+
+            - name: uploads
+
+              mountPath: /directus/uploads
+
+      volumes:
+
+        - name: uploads
+
+          persistentVolumeClaim:
+
+            claimName: portfolio-directus-uploads
+
+---
+
+apiVersion: v1
+
+kind: Service
+
+metadata:
+
+  name: portfolio-cms-svc
+
+spec:
+
+  selector:
+
+    app: portfolio-cms
+
+  ports:
+
+    - port: 80
+
+      targetPort: 8055
+
+      nodePort: 30081
+
+  type: NodePort
