@@ -6,6 +6,8 @@ metadata:
 
   name: portfolio-db-data
 
+  namespace: portfolio
+
 spec:
 
   accessModes:
@@ -27,6 +29,8 @@ kind: Deployment
 metadata:
 
   name: portfolio-db
+
+  namespace: portfolio
 
   labels:
 
@@ -105,6 +109,8 @@ kind: Service
 metadata:
 
   name: portfolio-db-svc
+
+  namespace: portfolio
 
 spec:
 

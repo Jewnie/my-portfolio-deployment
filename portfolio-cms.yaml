@@ -6,6 +6,8 @@ metadata:
 
   name: portfolio-directus-uploads
 
+  namespace: portfolio
+
 spec:
 
   accessModes:
@@ -27,6 +29,8 @@ kind: Deployment
 metadata:
 
   name: portfolio-cms
+
+  namespace: portfolio
 
   labels:
 
@@ -153,6 +157,8 @@ kind: Service
 metadata:
 
   name: portfolio-cms-svc
+
+  namespace: portfolio
 
 spec:
 

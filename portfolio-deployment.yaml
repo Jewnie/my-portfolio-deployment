@@ -6,6 +6,8 @@ metadata:
 
   name: portfolio
 
+  namespace: portfolio
+
   labels:
 
     app: portfolio
@@ -78,6 +80,8 @@ metadata:
 
   name: portfolio-svc
 
+  namespace: portfolio
+
 spec:
 
   selector:
@@ -103,6 +107,8 @@ kind: IngressRoute
 metadata:
 
   name: portfolio-ingressroute
+
+  namespace: portfolio
 
 spec:
 
